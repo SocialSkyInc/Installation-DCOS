@@ -1,0 +1,28 @@
+
+1. 前言
+对于容器编排系统，前段时间主要研究kubernetes，现在实验室要用dcos，所以在实验室集群上搭建了该系统，dcos版本为1.8.6。搭建完成dcos之后，随着集群规模的增加，需要动态向dcos集群中增加节点，这里说明添加过程。
+
+2. 本文分析内容安排
+2.1.安装依赖 
+2.2.准备安装文件 
+2.3.复制安装文件 
+2.4.进行安装
+
+3. 安装依赖
+因为dcos节点在部署之前需要安装一些以来文件，这里的做法是将需要动态添加到集群中的节点的ip地址写入genconf/config.yaml文件的响应位置，并运行bash dcos_generate_config.ee.sh --install-prereqs命令安装依赖。这里因为集群中原有集群中已经完整安装过一次依赖，所以即使它们的ip地址也在config.yaml文件中，但该步也只会向新加入的节点中安装
+
+4. 准备安装文件
+为了方便动态添加节点，一经部署成功dcos，就该到boot节点上备份安装文件。具体过程为，进入genconf/serve目录，并将目录中的内容打包为dcos-install.tar文件，具体命令为
+cd genconf/serve
+tar cf dcos-install.tar *
+
+5. 复制安装文件
+将dcos-install.tar文件复制到需要增加如dcos集群中的节点上，我们的环境中复制到了dcos8-130节点的/home/neo目录下
+scp dcos-install.tar root@dcos8-130:/home/neo
+
+6. 进行安装
+到docs8-130机器上将dcos-install.tar文件解压
+mkdir -p /opt/dcos_install_tmp & tar xf /home/neo/dcos-install.tar -C /opt/dcos_install_tmp
+
+执行安装
+bash /opt/dcos_install_tmp/dcos_install.sh slave
