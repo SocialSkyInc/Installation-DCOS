@@ -11,45 +11,60 @@
 system:centos7.1 
 kernel:4.4.18-1.el7.elrepo.x86_64
 packages:
-    Admin Router Agent
-    Admin Router Master 
-    Admin Router Reloader
-    Admin Router Reloader Timer
-    Diagnostics
-    Diagnostics socket
-    DNS Dispatcher
-    DNS Dispatcher Watchdog
-    DNS Dispatcher Watchdog Timer
-    Erlang Port Mapping Daemon
-    Exhibitor
-    Generate resolv.conf
-    Generate resolv.conf Timer
-    Jobs Service
-    Layer 4 Load Balancer
-    Logrotate Mesos Agent
-    Logrotate Mesos Master
-    Logrotate Timer
-    Marathon
-    Mesos Agent
-    Mesos Agent Public
-    Mesos DNS
-    Mesos History
-    Mesos Master
-    Navstar
-    OAuth
-    Package Service
-    Pkgpanda API
-    Pkgpanda API socket
-    REX-Ray
-    Signal
-    Signal Timer
+    mesos-1.2.0-2.0.2.x86_64
+    marathon-1.4.2-1.0.647.el7.x86_64
+    docker-engine-1.13.1-1.el7.centos.x86_64
+    
+服务分配:
+    Admin Router Agent  (192.168.38.73,75)
+    Admin Router Master (192.168.38.72)
+    Admin Router Reloader (192.168.38.72,73,75)
+    Admin Router Reloader Timer  (192.168.38.72,73,75)
+    Diagnostics   (192.168.38.72,73,75)
+    Diagnostics socket  (192.168.38.73,75)
+    DNS Dispatcher   (192.168.38.72,73,75)
+    DNS Dispatcher Watchdog    (192.168.38.72,73,75)
+    DNS Dispatcher Watchdog Timer     (192.168.38.72,73,75)
+    Erlang Port Mapping Daemon    (192.168.38.72,73,75)
+    Exhibitor     (192.168.38.72)
+    Generate resolv.conf    (192.168.38.72,73,75)
+    Generate resolv.conf Timer    (192.168.38.72,73,75)
+    Jobs Service     (192.168.38.72)
+    Layer 4 Load Balancer    (192.168.38.72,73,75)
+    Logrotate Mesos Agent    (192.168.38.73,75)
+    Logrotate Mesos Master    (192.168.38.72)
+    Logrotate Timer      (192.168.38.73,75)
+    Marathon    (192.168.38.72)    
+    Mesos Agent    (192.168.38.75)   
+    Mesos Agent Public    (192.168.38.75)
+    Mesos DNS     (192.168.38.72)
+    Mesos History    (192.168.38.72)
+    Mesos Master     (192.168.38.72)
+    Navstar     (192.168.38.72,73,75)
+    OAuth       (192.168.38.72)
+    Package Service    (192.168.38.72)
+    Pkgpanda API       (192.168.38.72,73,75)
+    Pkgpanda API socket     (192.168.38.72,73,75)
+    REX-Ray        (192.168.38.73,75)
+    Signal       (192.168.38.72)
+    Signal Timer     (192.168.38.72,73,75)
     
 
-硬件环境 
+节点信息: 
 192.168.36.152（boostap node） 
 192.168.38.72（master node） 
 192.168.38.73（slave public node）
-192.168.38.75（slave private node）
+192.168.38.75（slave private node)
+
+安装前准备:
+(所有节点执行)
+    开启服务器bridge模式
+        echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+        echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables
+    关闭selinux
+    关闭iptables
+    保证ssh端口号小于32000
+    开启ntp保证时钟同步
 
 官网的说明上，boostap node指的是安装的辅助节点，在上面会生成一些安装的配置文件，boostrap单独一台，master和slave统称为cluster。
 
