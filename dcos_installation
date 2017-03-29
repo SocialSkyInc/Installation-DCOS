@@ -129,27 +129,31 @@ echo $(ip addr show bond0 | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{
 5.生成配置信息
 cd dcos
 curl -O https://downloads.dcos.io/dcos/stable/dcos_generate_config.sh
-sudo bash dcos_generate_config.sh
+sudo bash dcos_generate_config.sh --genconf
 
 6.发布安装服务
 sudo docker run -d -p 9999:80 -v $PWD/genconf/serve:/usr/share/nginx/html:ro nginx
 
+7.bootstrap key配置
+拷贝ssh证书至文件 genconf/ssh_key
+cp <path-to-key> genconf/ssh_key && chmod 0600 genconf/ssh_key
 
-三、cluster安装
+
+三、cluster安装准备
 master和slave都要进行下面步骤
 
 1.安装必要程序
 yum -y install unzip ipset
 
 2.系统设置
-sudo groupadd nogroup
 sudo sed -i s/SELINUX=enforcing/SELINUX=permissive/g /etc/selinux/config
 reboot
 
 3.安装docker
-我安装的DCOS这个版本，检查docker的时候，会检查storageDriver，如果是mapperdevice会报错，所以这里安装docker的时候要设置一些东西，具体参考官网 
+安装的DCOS版本，检查docker检查storageDriver，是mapperdevice会报错，安装docker设置具体参考官网 
 https://dcos.io/docs/1.7/administration/installing/custom/system-requirements/install-docker-centos/
 Enable OverlayFS:
+
 $ sudo tee /etc/modules-load.d/overlay.conf <<-'EOF'
 overlay
 EOF
@@ -159,7 +163,7 @@ reboot
 检查overlayFS是否启动
 $ lsmod | grep overlay
 
-Configure yum to use the Docker yum repo:
+配置Docker yum repo:
 $ sudo tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -175,32 +179,56 @@ $ sudo mkdir -p /etc/systemd/system/docker.service.d && sudo tee /etc/systemd/sy
 ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
+设置docker启动脚本参数，强烈建议删除/etc/systemd/system/docker.service.d/override.conf,相关参数加入/usr/lib/systemd/system/docker.service
+
 
 Install the Docker engine, daemon, and service:
 $ sudo yum install --assumeyes --tolerant docker-engine
 $ sudo systemctl start docker
 $ sudo systemctl enable docker
 
+四、集群部署
+1. 集群安装依赖
+sudo bash dcos_generate_config.sh --install-prereqs
+2. 集群可安装性检测
+sudo bash dcos_generate_config.sh --preflight
+3. 集群安装dcos
+sudo bash dcos_generate_config.sh --deploy
+4. 集群安装完成服务检测
+sudo bash dcos_generate_config.sh --postflight
+5. zookeeper访问
+http://<master-public-ip>:8181/exhibitor/v1/ui/index.html
+6. dcos集群访问
+http://<public-master-ip>/
+7. 集群备份
+cd genconf/serve
+sudo tar cf dcos-install.tar *
+scp -i $username@$node-ip:~/genconf/serve/dcos-install.tar 
+8.添加agent nodes
+修改配置文件增加集群相关节点
+vi genconf/config.jaml
 
-四、master安装
-
-安装
-mkdir /tmp/dcos
-cd /tmp/dcos
-curl -O http://192.168.1.27:9999/dcos_install.sh
-sudo bash dcos_install.sh master
-
-查看master的zookeeper运行情况 
-http://192.168.1.28:8181/exhibitor/v1/ui/index.html 
-上面的为master启动的情况 
-这里写图片描述
-dcos界面 
-这里写图片描述 
-这里写图片描述
+监测依赖
+    sudo bash dcos_generate_config.sh --install-prereqs
+    sudo bash dcos_generate_config.sh --preflight
+    sudo bash dcos_generate_config.sh --deploy
+    sudo bash dcos_generate_config.sh --postflight
 
 
-五、slave安装
-mkdir /tmp/dcos
-cd /tmp/dcos
-curl -O http://192.168.1.27:9999/dcos_install.sh
-sudo bash dcos_install.sh slave
+五、dcos独立安装
+1. master安装
+下载部署脚本、部署master
+    mkdir /tmp/dcos
+    cd /tmp/dcos
+    curl -O http://192.168.36.152:9999/dcos_install.sh
+    sudo bash /opt/dcos_install_tmp/dcos_install.sh master
+
+2. slave安装
+    mkdir /tmp/dcos
+    cd /tmp/dcos
+    curl -O http://192.168.36.152:9999/dcos_install.sh
+
+    Private agent nodes:
+        sudo bash /opt/dcos_install_tmp/dcos_install.sh slave
+    Public agent nodes:
+        sudo bash /opt/dcos_install_tmp/dcos_install.sh slave_public
