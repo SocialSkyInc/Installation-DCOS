@@ -238,3 +238,14 @@ vi genconf/config.jaml
         sudo bash /opt/dcos_install_tmp/dcos_install.sh slave
     Public agent nodes:
         sudo bash /opt/dcos_install_tmp/dcos_install.sh slave_public
+    
+六、 问题
+1. 安装完成后，服务无法启动，查看日志显示大量时钟不同步问题，但是服务器时钟正常
+原因: 时钟同步dcos这块代码存在很多问题，不能正确反馈当前主机的时钟，需要关闭相关时钟监测
+解决办法: 
+
+    vim /opt/mesosphere/etc/check_time.env
+    ENABLE_CHECK_TIME=false
+
+
+
