@@ -217,6 +217,9 @@ vi genconf/config.jaml
 
 五、dcos独立安装
 1. master安装
+安装依赖包
+    yum install ipset -y
+    groupadd nogroup
 下载部署脚本、部署master
     mkdir /tmp/dcos
     cd /tmp/dcos
